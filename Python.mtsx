@@ -9,7 +9,6 @@
     //
     name: ["Python", ".py"]
     comment: {startsWith: "#", addToContains: false}
-    hide: true // 避免与内置语法重复
     styles: [ // 注释内为VSCode浅色主题原色
         "default",    #3B3B3B, #CCCCCC
         "b1",         #0431FA, #FFD700 // #0431FA
