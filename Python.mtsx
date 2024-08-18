@@ -9,6 +9,7 @@
     //
     name: ["Python", ".py"]
     comment: {startsWith: "#", addToContains: false}
+    hide: true
     styles: [ // 注释内为VSCode浅色主题原色
         "default",    #3B3B3B, #CCCCCC
         "b1",         #0431FA, #FFD700 // #0431FA
@@ -32,17 +33,28 @@
     defines: [
         // 高亮括号
         "bracketHighlight": [
+            {include: "bracket1"}
+        ]
+        "bracket1": [
             {include: "S1"}
             {include: "M1"}
             {include: "L1"}
+        ]
+        "bracket2": [
+            {include: "S2"}
+            {include: "M2"}
+            {include: "L2"}
+        ]
+        "bracket3": [
+            {include: "S3"}
+            {include: "M3"}
+            {include: "L3"}
         ]
         "S1": {
             start: {match: /\(/, 0: "b1"}
             end: {match: /\)/, 0: "b1"}
             contains: [
-                {include: "S2"}
-                {include: "M2"}
-                {include: "L2"}
+                {include: "bracket2"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -51,9 +63,7 @@
             start: {match: /\(/, 0: "b2"}
             end: {match: /\)/, 0: "b2"}
             contains: [
-                {include: "S3"}
-                {include: "M3"}
-                {include: "L3"}
+                {include: "bracket3"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -62,9 +72,7 @@
             start: {match: /\(/, 0: "b3"}
             end: {match: /\)/, 0: "b3"}
             contains: [
-                {include: "S1"}
-                {include: "M1"}
-                {include: "L1"}
+                {include: "bracket1"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -73,9 +81,7 @@
             start: {match: /\[/, 0: "b1"}
             end: {match: /\]/, 0: "b1"}
             contains: [
-                {include: "S2"}
-                {include: "M2"}
-                {include: "L2"}
+                {include: "bracket2"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -84,9 +90,7 @@
             start: {match: /\[/, 0: "b2"}
             end: {match: /\]/, 0: "b2"}
             contains: [
-                {include: "S3"}
-                {include: "M3"}
-                {include: "L3"}
+                {include: "bracket3"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -95,9 +99,7 @@
             start: {match: /\[/, 0: "b3"}
             end: {match: /\]/, 0: "b3"}
             contains: [
-                {include: "S1"}
-                {include: "M1"}
-                {include: "L1"}
+                {include: "bracket1"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -106,9 +108,7 @@
             start: {match: /\{/, 0: "b1"}
             end: {match: /\}/, 0: "b1"}
             contains: [
-                {include: "S2"}
-                {include: "M2"}
-                {include: "L2"}
+                {include: "bracket2"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -117,9 +117,7 @@
             start: {match: /\{/, 0: "b2"}
             end: {match: /\}/, 0: "b2"}
             contains: [
-                {include: "S3"}
-                {include: "M3"}
-                {include: "L3"}
+                {include: "bracket3"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -128,9 +126,7 @@
             start: {match: /\{/, 0: "b3"}
             end: {match: /\}/, 0: "b3"}
             contains: [
-                {include: "S1"}
-                {include: "M1"}
-                {include: "L1"}
+                {include: "bracket1"}
                 {include: "main"}
                 {include: "global"}
             ]
@@ -145,9 +141,18 @@
             {match: /(?s)\\./, 0: "strEscape"}
             ]
         "f-string":{
-            style: "variable"
+            style: "default"
             start: {match: /\{/, 0: "keyword"}
             end: {match: /(?m)\}|$/, 0:"keyword"}
+            contains: [
+                {include: "bracket3"} // 括号高亮
+                {include: "main"}
+                //{match: /\b\w+(?=\(.*?\))/, 0:"keyword2"} // 函数调用 - join(...)
+                {match: /\b\w+\b/, 0: "variable"} // 变量名
+                //{match: /\.\w+\b/, 0: "function"} // 属性访问 - .split
+                {match: /("|').*?\1/, 0: "string"} // 字符串
+                
+            ]
         }
         
         // 全局变量
@@ -188,8 +193,9 @@
                 {include: "global"}
             ]
         }
-        // 定义类函数 (@ def class)
-        // 暂不处理 from 和 import，因为它们较易识别
+        // 定义类函数 (from import as @decorator def class)
+        {match: /(?m)(^(?:\bfrom )(\w+)|(?:\bimport )(\w+)((?: as (\w+)))?)/,
+        0: "keyword", 2: "type", 3: "type", 5: "type"}
         {
             style: "function"
             start: {match: /(?m)(^|\s+)@/} // 行首匹配
@@ -198,7 +204,7 @@
         }
         {
             style: "function"
-            start: {match: /(?<=def )/}
+            start: {match: /(?<=\bdef \b)/}
             end: {match: /(?m)(?=\()/} // 无括号不高亮
             mustMatchEnd: true
             contains:[
@@ -207,7 +213,7 @@
         }
         {
             style: "type"
-            start: {match: /(?<=class )/}
+            start: {match: /(?<=\bclass \b)/}
             end: {match: /(?m)(?=[\(:])/}
             mustMatchEnd: true
             contains:[
@@ -217,6 +223,26 @@
         // 字符串（包括前缀b f r fr u）
         
         // f-string
+        {
+            style: "string"
+            start: {match: /(f|F)"""/, 1: "keyword2"}
+            end: {match: /"""|$/}
+            contains: [
+                {include: "f-string"}
+                {include: "escape"}
+                {include: "global"}
+            ]
+        }
+        {
+            style: "string"
+            start: {match: /(f|F)'''/, 1: "keyword2"}
+            end: {match: /'''|$/}
+            contains: [
+                {include: "f-string"}
+                {include: "escape"}
+                {include: "global"}
+            ]
+        }
         {
             style: "string"
             start: {match: /(f|F)"/, 1: "keyword2"}
@@ -237,45 +263,7 @@
                 {include: "global"}
             ]
         }
-        {
-            style: "string"
-            start: {match: /(f|F)"""/, 1: "keyword2"}
-            end: {match: /(?m)"""|$/}
-            contains: [
-                {include: "f-string"}
-                {include: "escape"}
-                {include: "global"}
-            ]
-        }
-        {
-            style: "string"
-            start: {match: /(f|F)'''/, 1: "keyword2"}
-            end: {match: /(?m)'''|$/}
-            contains: [
-                {include: "f-string"}
-                {include: "escape"}
-                {include: "global"}
-            ]
-        }
         // raw string
-        {
-            style: "r-string"
-            start: {match: /(r|R)"/, 1: "keyword2"}
-            end: {match: /(?m)"|$/}
-            contains: [
-                {include: "r-escape"}
-                {include: "global"}
-            ]
-        }
-        {
-            style: "r-string"
-            start: {match: /(r|R)'/, 1: "keyword2"}
-            end: {match: /(?m)'|$/}
-            contains: [
-                {include: "r-escape"}
-                {include: "global"}
-            ]
-        }
         {
             style: "r-string"
             start: {match: /(r|R)"""/, 1: "keyword2"}
@@ -294,7 +282,43 @@
                 {include: "global"}
             ]
         }
+        {
+            style: "r-string"
+            start: {match: /(r|R)"/, 1: "keyword2"}
+            end: {match: /(?m)"|$/}
+            contains: [
+                {include: "r-escape"}
+                {include: "global"}
+            ]
+        }
+        {
+            style: "r-string"
+            start: {match: /(r|R)'/, 1: "keyword2"}
+            end: {match: /(?m)'|$/}
+            contains: [
+                {include: "r-escape"}
+                {include: "global"}
+            ]
+        }
         // raw f-string
+        {
+            style: "string"
+            start: {match: /(?i)(fr|rf)"""/, 1: "keyword2"}
+            end: {match: /"""|$/}
+            contains: [
+            {include: "f-string"}
+            {include: "global"}
+            ]
+        }
+        {
+            style: "string"
+            start: {match: /(?i)(fr|rf)'''/, 1: "keyword2"}
+            end: {match: /'''|$/}
+            contains: [
+            {include: "f-string"}
+            {include: "global"}
+            ]
+        }
         {
             style: "string"
             start: {match: /(?i)(fr|rf)"/, 1: "keyword2"}
@@ -307,25 +331,7 @@
         {
             style: "string"
             start: {match: /(?i)(fr|rf)'/, 1: "keyword2"}
-            end: {match: /(?m)"|$/}
-            contains: [
-            {include: "f-string"}
-            {include: "global"}
-            ]
-        }
-        {
-            style: "string"
-            start: {match: /(?i)(fr|rf)"""/, 1: "keyword2"}
-            end: {match: /(?m)"|$/}
-            contains: [
-            {include: "f-string"}
-            {include: "global"}
-            ]
-        }
-        {
-            style: "string"
-            start: {match: /(?i)(fr|rf)'''/, 1: "keyword2"}
-            end: {match: /(?m)"|$/}
+            end: {match: /(?m)'|$/}
             contains: [
             {include: "f-string"}
             {include: "global"}
@@ -334,7 +340,7 @@
         // 普通字符串
         {
             style: "string"
-            start: {match: /(u|U?)"""/, 1: "keyword2"}
+            start: {match: /(u|U|)"""/, 1: "keyword2"}
             end: {match: /"""|$/}
             contains: [
                 {include: "escape"}
@@ -343,7 +349,7 @@
         }
         {
             style: "string"
-            start: {match: /(u|U?)'''/, 1: "keyword2"}
+            start: {match: /(u|U|)'''/, 1: "keyword2"}
             end: {match: /'''|$/}
             contains: [
                 {include: "escape"}
@@ -415,7 +421,7 @@
         {match: keywordsToRegex(
                 "__debug__ True False None self and class def global in is lambda nonlocal not or Ellipsis NotImplemented"
             ), 0: "keyword2"}
-        {match: /async def/, 0: "keyword2"}
+        {match: /\basync def\b/, 0: "keyword2"}
         {match: keywordsToRegex(
                 "as assert async await break continue del elif else except finally for from if import pass"
                 "raise return try while with yield"
@@ -426,6 +432,14 @@
                 "hasattr hash help hex id input isinstance issubclass iter len license locals max min next"
                 "oct open ord pow print quit reload repr round setattr sorted sum vars"
             ), 0: "function"}
+        {match:/\.(/ + keywordsToRegex(
+                "split join replace format find index count lower upper strip lstrip rstrip append extend insert"
+                "remove pop clear copy sort reverse keys values items get setdefault update add discard difference"
+                "intersection union symmetric_difference difference_update intersection_update union_update"
+                "symmetric_difference_update issubset issuperset isdisjoint encode decode capitalize title swapcase"
+                "startswith endswith isalpha isdigit isalnum islower isupper isspace isdecimal zfill center ljust rjust"
+                "partition rpartition splitlines expandtabs translate maketrans fromkeys copy deepcopy"
+            ) + /)/, 1: "function"} // 属性访问
         {match:keywordsToRegex(
                 "__all__ __annotations__ __bases__ __builtins__ __cached__ __class__ __closure__ __code__"
                 "__defaults__ __dict__ __doc__ __file__ __func__ __globals__ __kwdefaults__ __loader__"
